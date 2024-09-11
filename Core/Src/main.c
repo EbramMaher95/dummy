@@ -166,59 +166,71 @@ int main(void) {
 	 * testing section
 	 */
 
-	/*
-	 //to change the duty cycle -> CCR
-	 //range is from 999 to 1999 (according to calculations)
-	 TIM1->CCR1 = 1999;
-	 GPIO_InitTypeDef c = { .Mode = GPIO_MODE_OUTPUT_PP, .Pin = GPIO_PIN_13,
-	 .Speed = GPIO_SPEED_LOW };
+	//to change the duty cycle -> CCR
+	//range is from 999 to 1999 (according to calculations)
+	TIM1->CCR1 = 1999;
+	GPIO_InitTypeDef c = { .Mode = GPIO_MODE_OUTPUT_PP, .Pin = GPIO_PIN_13,
+			.Speed = GPIO_SPEED_LOW };
 
-	 HAL_GPIO_Init(GPIOC, &c);
+	HAL_GPIO_Init(GPIOC, &c);
 
-	 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, SET);
 
-	 char str[16];
-	 int16_t message;
-	 uint8_t value;
-	 eeprom24c32_read(&memory, &value, &memory.i2c_buffer[2]);
+	char str[16];
+	int16_t message;
+	uint8_t value1, value2;
+	eeprom24c32_read(&memory, &value1, dosing_time_hours);
 
-	 Alcd_Clear(&lcd);
-	 // Display ADC value on the LCD
-	 message = sprintf(str, "mem = %d", value);
-	 Alcd_PutAt_n(&lcd, 0, 0, str, message);
+	eeprom24c32_read(&memory, &value1, dosing_time_minutes);
 
-	 HAL_Delay(2000);
+	//eeprom24c32_read(&memory, &value1, &memory.i2c_buffer[4]);
 
-	 value = 255;
+	Alcd_Clear(&lcd);
+	// Display ADC value on the LCD
+	message = sprintf(str, "mem1 = %d", value1);
+	Alcd_PutAt_n(&lcd, 0, 0, str, message);
+	message = sprintf(str, "mem2 = %d", value2);
+	Alcd_PutAt_n(&lcd, 1, 0, str, message);
 
-	 while (value == 255) {
+	HAL_Delay(2000);
 
-	 Keypad_Refresh(&kp);
-	 if (Keypad_Get_Key(&kp, 12)) {
-	 value = 12;
-	 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, RESET);
-	 } else if (Keypad_Get_Key(&kp, 10)) {
-	 value = 10;
-	 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, RESET);
-	 } else if (Keypad_Get_Key(&kp, 1)) {
-	 value = 1;
-	 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, RESET);
-	 }
+	value1 = 255;
 
-	 }
+	value2 = 8;
 
-	 Alcd_Clear(&lcd);
-	 Alcd_PutAt(&lcd, 0, 0, "exit while");
+	while (value1 == 255) {
 
-	 HAL_Delay(2000);
+		Keypad_Refresh(&kp);
+		if (Keypad_Get_Key(&kp, 0)) {
+			value1 = 0;
+			value2 = 10;
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, RESET);
+		} else if (Keypad_Get_Key(&kp, 1)) {
+			value1 = 5;
+			value2 = 20;
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, RESET);
+		} else if (Keypad_Get_Key(&kp, 2)) {
+			value1 = 15;
+			value2 = 30;
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, RESET);
+		}
 
-	 eeprom24c32_write(&memory, &value, &memory.i2c_buffer[2]);
+	}
 
-	 Alcd_Clear(&lcd);
-	 // Display ADC value on the LCD
-	 message = sprintf(str, "value = %d", value);
-	 Alcd_PutAt_n(&lcd, 0, 0, str, message);
-	 */
+	Alcd_Clear(&lcd);
+	Alcd_PutAt(&lcd, 0, 0, "exit while");
+
+	HAL_Delay(2000);
+
+	eeprom24c32_write(&memory, &value1, dosing_time_hours);
+	eeprom24c32_write(&memory, &value2, dosing_time_minutes);
+
+	Alcd_Clear(&lcd);
+	// Display ADC value on the LCD
+	message = sprintf(str, "value = %d", value1);
+	Alcd_PutAt_n(&lcd, 0, 0, str, message);
+	message = sprintf(str, "mem2 = %d", value2);
+	Alcd_PutAt_n(&lcd, 1, 0, str, message);
 
 	/**
 	 * end of testing section
@@ -232,134 +244,135 @@ int main(void) {
 
 		/* USER CODE BEGIN 3 */
 		//get the current tick number
-		current_tick = HAL_GetTick();
-		//view the time parameters -> status 14
-		while ((status == 0) && (current_tick >= general_delay)) {
+		/*
+		 current_tick = HAL_GetTick();
+		 //view the time parameters -> status 14
+		 while ((status == 0) && (current_tick >= general_delay)) {
 
-			//get the current tick number
-			current_tick = HAL_GetTick();
-			//clear the lcd
-			Alcd_Clear(&lcd);
-			Alcd_PutAt(&lcd, 0, 0, "Dose @");
+		 //get the current tick number
+		 current_tick = HAL_GetTick();
+		 //clear the lcd
+		 Alcd_Clear(&lcd);
+		 Alcd_PutAt(&lcd, 0, 0, "Dose @");
 
-			//reading dosing hours
-			eeprom24c32_read(&memory, &dose_h, dosing_time_hours);
+		 //reading dosing hours
+		 eeprom24c32_read(&memory, &dose_h, dosing_time_hours);
 
-			snprintf(timeString, sizeof(timeString), "%02d", status);
-			Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
+		 snprintf(timeString, sizeof(timeString), "%02d", status);
+		 Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
 
-			snprintf(timeString, sizeof(timeString), "%02d:", dose_h);
-			Alcd_PutAt_n(&lcd, 1, 0, timeString, strlen(timeString));
+		 snprintf(timeString, sizeof(timeString), "%02d:", dose_h);
+		 Alcd_PutAt_n(&lcd, 1, 0, timeString, strlen(timeString));
 
-			eeprom24c32_read(&memory, &dose_m, dosing_time_minutes);
-			snprintf(timeString, sizeof(timeString), "%02d:", dose_m);
+		 eeprom24c32_read(&memory, &dose_m, dosing_time_minutes);
+		 snprintf(timeString, sizeof(timeString), "%02d:", dose_m);
 
-			Alcd_PutAt_n(&lcd, 1, 3, timeString, strlen(timeString));
+		 Alcd_PutAt_n(&lcd, 1, 3, timeString, strlen(timeString));
 
-			eeprom24c32_read(&memory, &dose_s, dosing_time_seconds);
-			snprintf(timeString, sizeof(timeString), "%02d", dose_s);
+		 eeprom24c32_read(&memory, &dose_s, dosing_time_seconds);
+		 snprintf(timeString, sizeof(timeString), "%02d", dose_s);
 
-			Alcd_PutAt_n(&lcd, 1, 6, timeString, strlen(timeString));
+		 Alcd_PutAt_n(&lcd, 1, 6, timeString, strlen(timeString));
 
-			//check if back or next is selected
-			Keypad_Refresh(&kp);
-			//in case back is selected
-			if (Keypad_Get_Key(&kp, kp_button_save_menu)
-					&& (current_tick >= general_delay)) {
+		 //check if back or next is selected
+		 Keypad_Refresh(&kp);
+		 //in case back is selected
+		 if (Keypad_Get_Key(&kp, kp_button_save_menu)
+		 && (current_tick >= general_delay)) {
 
-				//back to previous menu
-				status = 10;
+		 //back to previous menu
+		 status = 10;
 
-			}
+		 }
 
-			general_delay = HAL_GetTick() + 250;
-		}
-
-
-		while ((status == 10) && (current_tick >= general_delay)) {
-
-			//get the current tick number
-			current_tick = HAL_GetTick();
-			//clear the lcd
-			Alcd_Clear(&lcd);
-			Alcd_PutAt(&lcd, 0, 0, "enter h:");
-
-			snprintf(timeString, sizeof(timeString), "%02d", status);
-			Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
-
-			Keypad_Refresh(&kp);
-
-			if (Keypad_Get_Key(&kp, kp_button_1)
-					&& (current_tick >= general_delay)) {
-
-				dose_h = 12;
-
-				eeprom24c32_write(&memory, &dose_h, 0x0000);
-
-				status = 11;
-
-			}
-
-			general_delay = HAL_GetTick() + 250;
-		}
+		 general_delay = HAL_GetTick() + 250;
+		 }
 
 
-		while ((status == 11) && (current_tick >= general_delay)) {
+		 while ((status == 10) && (current_tick >= general_delay)) {
 
-			//get the current tick number
-			current_tick = HAL_GetTick();
-			//clear the lcd
-			Alcd_Clear(&lcd);
-			Alcd_PutAt(&lcd, 0, 0, "enter m:");
+		 //get the current tick number
+		 current_tick = HAL_GetTick();
+		 //clear the lcd
+		 Alcd_Clear(&lcd);
+		 Alcd_PutAt(&lcd, 0, 0, "enter h:");
 
-			snprintf(timeString, sizeof(timeString), "%02d", status);
-			Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
+		 snprintf(timeString, sizeof(timeString), "%02d", status);
+		 Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
 
-			Keypad_Refresh(&kp);
+		 Keypad_Refresh(&kp);
 
-			if (Keypad_Get_Key(&kp, kp_button_2)
-					&& (current_tick >= general_delay)) {
+		 if (Keypad_Get_Key(&kp, kp_button_1)
+		 && (current_tick >= general_delay)) {
 
-				dose_m = 20;
+		 dose_h = 12;
 
-				eeprom24c32_write(&memory, &dose_m, 0x0010);
+		 eeprom24c32_write(&memory, &dose_h, 0x0000);
 
-				status = 12;
+		 status = 11;
 
-			}
+		 }
 
-			general_delay = HAL_GetTick() + 250;
-		}
-
-
-		while ((status == 12) && (current_tick >= general_delay)) {
-
-			//get the current tick number
-			current_tick = HAL_GetTick();
-			//clear the lcd
-			Alcd_Clear(&lcd);
-			Alcd_PutAt(&lcd, 0, 0, "enter sec:");
-
-			snprintf(timeString, sizeof(timeString), "%02d", status);
-			Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
-
-			Keypad_Refresh(&kp);
-
-			if (Keypad_Get_Key(&kp, kp_button_3)
-					&& (current_tick >= general_delay)) {
-
-				dose_h = 50;
-
-				eeprom24c32_write(&memory, &dose_s, 0x0100);
-
-				status = 0;
-
-			}
-
-			general_delay = HAL_GetTick() + 250;
-		}
+		 general_delay = HAL_GetTick() + 250;
+		 }
 
 
+		 while ((status == 11) && (current_tick >= general_delay)) {
+
+		 //get the current tick number
+		 current_tick = HAL_GetTick();
+		 //clear the lcd
+		 Alcd_Clear(&lcd);
+		 Alcd_PutAt(&lcd, 0, 0, "enter m:");
+
+		 snprintf(timeString, sizeof(timeString), "%02d", status);
+		 Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
+
+		 Keypad_Refresh(&kp);
+
+		 if (Keypad_Get_Key(&kp, kp_button_2)
+		 && (current_tick >= general_delay)) {
+
+		 dose_m = 20;
+
+		 eeprom24c32_write(&memory, &dose_m, 0x0010);
+
+		 status = 12;
+
+		 }
+
+		 general_delay = HAL_GetTick() + 250;
+		 }
+
+
+		 while ((status == 12) && (current_tick >= general_delay)) {
+
+		 //get the current tick number
+		 current_tick = HAL_GetTick();
+		 //clear the lcd
+		 Alcd_Clear(&lcd);
+		 Alcd_PutAt(&lcd, 0, 0, "enter sec:");
+
+		 snprintf(timeString, sizeof(timeString), "%02d", status);
+		 Alcd_PutAt_n(&lcd, 0, 14, timeString, strlen(timeString));
+
+		 Keypad_Refresh(&kp);
+
+		 if (Keypad_Get_Key(&kp, kp_button_3)
+		 && (current_tick >= general_delay)) {
+
+		 dose_h = 50;
+
+		 eeprom24c32_write(&memory, &dose_s, 0x0100);
+
+		 status = 0;
+
+		 }
+
+		 general_delay = HAL_GetTick() + 250;
+		 }
+
+		 */
 //
 //
 	}			//end of while 1

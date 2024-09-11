@@ -59,9 +59,9 @@ extern "C" {
 
 
 
-#define dosing_time_hours 0b00000000
-#define dosing_time_minutes 0b00001111
-#define dosing_time_seconds 0b11110000
+#define dosing_time_hours memory.i2c_buffer[0]
+#define dosing_time_minutes memory.i2c_buffer[1]
+#define dosing_time_seconds memory.i2c_buffer[2]
 #define doses_number memory.i2c_buffer[3]
 #define dosing_12_24	memory.i2c_buffer[4]
 #define dosing_12 1
