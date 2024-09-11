@@ -1,0 +1,5 @@
+../Drivers/Device_Drivers/24C32_EEPROM/24C32.c:19:16:I2C__write	40	static
+../Drivers/Device_Drivers/24C32_EEPROM/24C32.c:30:16:I2C__read	40	static
+../Drivers/Device_Drivers/24C32_EEPROM/24C32.c:42:16:eeprom24c32_init	24	static
+../Drivers/Device_Drivers/24C32_EEPROM/24C32.c:82:9:eeprom24c32_write	48	static
+../Drivers/Device_Drivers/24C32_EEPROM/24C32.c:100:10:eeprom24c32_read	48	static
